@@ -6,20 +6,12 @@ import { runAgent5 } from "./agents/agent5.js";
 import { runAgent6 } from "./agents/agent6.js";
 
 async function main() {
-  const prompt = "Hallo, teste alle Agents.";
-
-  const results = await Promise.all([
-    runAgent1(prompt),
-    runAgent2(prompt),
-    runAgent3(prompt),
-    runAgent4(prompt),
-    runAgent5(prompt),
-    runAgent6(prompt)
-  ]);
-
-  results.forEach((res, i) => {
-    console.log(`Agent${i + 1}:`, res);
-  });
+  console.log(await runAgent1("Hallo Agent1"));
+  console.log(await runAgent2("Hallo Agent2"));
+  console.log(await runAgent3("Hallo Agent3"));
+  console.log(await runAgent4("Hallo Agent4"));
+  console.log(await runAgent5("Hallo Agent5"));
+  console.log(await runAgent6("Hallo Agent6"));
 }
 
 main();
