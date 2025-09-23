@@ -1,21 +1,13 @@
-import { Configuration, OpenAIApi } from "openai";
-require("dotenv").config();
+import OpenAI from "openai";
 
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
-const openai = new OpenAIApi(configuration);
 
-// Du kannst hier für jeden Agenten andere Prompts setzen
-const AGENT_PROMPT = "Du bist ein hilfsbereiter Assistent.";
-
-async function askAgent(question) {
-    const response = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: AGENT_PROMPT + "\n" + question }],
-        max_tokens: 500
-    });
-    return response.data.choices[0].message.content;
+export async function runAgent6(prompt) {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }]
+  });
+  return response.choices[0].message.content;
 }
-
-export default { askAgent };
