@@ -6,6 +6,7 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+// Du kannst hier für jeden Agenten andere Prompts setzen
 const AGENT_PROMPT = "Du bist ein hilfsbereiter Assistent.";
 
 async function askAgent(question) {

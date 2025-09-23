@@ -1,3 +1,6 @@
+require("dotenv").config(); // Lädt den API Key aus .env
+
+
 const express = require("express");
 const bodyParser = require("body-parser");
 
