@@ -4,12 +4,12 @@ require("dotenv").config(); // Lädt den API Key aus .env
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const agent1 = require("./agents/agent1");
-const agent2 = require("./agents/agent2");
-const agent3 = require("./agents/agent3");
-const agent4 = require("./agents/agent4");
-const agent5 = require("./agents/agent5");
-const agent6 = require("./agents/agent6");
+const agent1 = require("./agents/agent1").default;
+const agent2 = require("./agents/agent2").default;
+const agent3 = require("./agents/agent3").default;
+const agent4 = require("./agents/agent4").default;
+const agent5 = require("./agents/agent5").default;
+const agent6 = require("./agents/agent6").default;
 
 const AGENTS = { agent1, agent2, agent3, agent4, agent5, agent6 };
 

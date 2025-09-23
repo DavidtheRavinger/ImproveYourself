@@ -1,4 +1,4 @@
-const { Configuration, OpenAIApi } = require("openai");
+import { Configuration, OpenAIApi } from "openai";
 require("dotenv").config();
 
 const configuration = new Configuration({
@@ -18,5 +18,5 @@ async function askAgent(question) {
     return response.data.choices[0].message.content;
 }
 
-module.exports = { askAgent };
+export default { askAgent };
  // hallo

@@ -1,9 +1,5 @@
 body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
 h1 { color: #333; }
 textarea { width: 100%; }
-<<<<<<< HEAD
 button { padding: 10px 20px; margin-top: 10px; }
-=======
-button { padding: 10px 20px; }
->>>>>>> d4326876ffe30dd2ac0a9f05948909e8f89dbf08
 p { margin-top: 20px; font-weight: bold; }
