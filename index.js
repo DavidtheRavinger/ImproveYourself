@@ -1,4 +1,5 @@
 import express from "express";
+import bodyParser from "body-parser";
 import dotenv from "dotenv";
 
 import { runAgent1 } from "./agents/agent1.js";
@@ -11,37 +12,47 @@ import { runAgent6 } from "./agents/agent6.js";
 dotenv.config();
 
 const app = express();
-app.use(express.json());
-
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => res.send("Hallo! Willkommen bei ImproveYourself"));
+app.use(bodyParser.json());
+app.use(express.static("public")); // für HTML/CSS/JS
 
-// Routen für alle Agenten
-app.get("/agent1", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent1!";
-  res.send(await runAgent1(prompt));
-});
-app.get("/agent2", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent2!";
-  res.send(await runAgent2(prompt));
-});
-app.get("/agent3", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent3!";
-  res.send(await runAgent3(prompt));
-});
-app.get("/agent4", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent4!";
-  res.send(await runAgent4(prompt));
-});
-app.get("/agent5", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent5!";
-  res.send(await runAgent5(prompt));
-});
-app.get("/agent6", async (req, res) => {
-  const prompt = req.query.prompt || "Hallo Agent6!";
-  res.send(await runAgent6(prompt));
+// Route für jeden Agenten
+app.post("/chat/:agent", async (req, res) => {
+  const { agent } = req.params;
+  const { message } = req.body;
+
+  try {
+    let response;
+    switch(agent) {
+      case "agent1":
+        response = await runAgent1(message);
+        break;
+      case "agent2":
+        response = await runAgent2(message);
+        break;
+      case "agent3":
+        response = await runAgent3(message);
+        break;
+      case "agent4":
+        response = await runAgent4(message);
+        break;
+      case "agent5":
+        response = await runAgent5(message);
+        break;
+      case "agent6":
+        response = await runAgent6(message);
+        break;
+      default:
+        return res.status(400).json({ error: "Unknown agent" });
+    }
+    res.json({ reply: response });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
-// Beispielaufruf: http://localhost:3000/agent1?prompt=Wie%20ist%20das%20Wetter%20heute?
+app.listen(PORT, () => {
+  console.log(`Server läuft auf http://localhost:${PORT}`);
+});

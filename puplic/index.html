@@ -2,11 +2,20 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>GPT-3.5 Agenten</title>
-<link rel="stylesheet" href="style.css">
+<title>ImproveYourself Chat</title>
+<style>
+  body { font-family: sans-serif; margin: 2rem; }
+  input, select, button { margin: 0.5rem 0; }
+  #chat { border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; }
+  .message { margin: 0.5rem 0; }
+  .user { color: blue; }
+  .agent { color: green; }
+</style>
 </head>
 <body>
-<h1>GPT-3.5 Agenten</h1>
+<h1>ImproveYourself Chat</h1>
+<div id="chat"></div>
+
 <select id="agentSelect">
   <option value="agent1">Agent 1</option>
   <option value="agent2">Agent 2</option>
@@ -15,23 +24,28 @@
   <option value="agent5">Agent 5</option>
   <option value="agent6">Agent 6</option>
 </select>
-<br><br>
-<textarea id="question" placeholder="Frage hier eingeben..." rows="4" cols="50"></textarea>
-<br><br>
-<button onclick="askAgent()">Frage stellen</button>
-<p id="answer"></p>
+<br>
+<input type="text" id="messageInput" placeholder="Schreibe deine Nachricht..." size="50"/>
+<button onclick="sendMessage()">Senden</button>
 
 <script>
-async function askAgent() {
-    const agent = document.getElementById("agentSelect").value;
-    const question = document.getElementById("question").value;
-    const response = await fetch("/ask", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({agent, question})
-    });
-    const data = await response.json();
-    document.getElementById("answer").innerText = data.answer || data.error;
+async function sendMessage() {
+  const chat = document.getElementById("chat");
+  const agent = document.getElementById("agentSelect").value;
+  const message = document.getElementById("messageInput").value;
+  if (!message) return;
+
+  chat.innerHTML += `<div class="message user"><b>Du:</b> ${message}</div>`;
+  document.getElementById("messageInput").value = "";
+
+  const res = await fetch(`/chat/${agent}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+  const data = await res.json();
+  chat.innerHTML += `<div class="message agent"><b>${agent}:</b> ${data.reply}</div>`;
+  chat.scrollTop = chat.scrollHeight;
 }
 </script>
 </body>
