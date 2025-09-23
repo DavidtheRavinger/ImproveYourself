@@ -1,20 +1,30 @@
 const express = require("express");
-const path = require("path");
+const bodyParser = require("body-parser");
+
+const agent1 = require("./agents/agent1");
+const agent2 = require("./agents/agent2");
+const agent3 = require("./agents/agent3");
+const agent4 = require("./agents/agent4");
+const agent5 = require("./agents/agent5");
+const agent6 = require("./agents/agent6");
+
+const AGENTS = { agent1, agent2, agent3, agent4, agent5, agent6 };
 
 const app = express();
-const port = process.env.PORT || 3000;
+app.use(bodyParser.json());
+app.use(express.static("public")); // index.html und style.css
 
-// statische Dateien (z. B. public Ordner)
-app.use(express.static(path.join(__dirname, "public")));
+app.post("/ask", async (req, res) => {
+    const { agent, question } = req.body;
+    if (!AGENTS[agent]) return res.status(400).json({ error: "Agent existiert nicht" });
 
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hallo Render!" });
+    try {
+        const answer = await AGENTS[agent].askAgent(question);
+        res.json({ answer });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-app.get("/", (req, res) => {
-  res.send("Willkommen bei ImproveYourself 🚀");
-});
-
-app.listen(port, () => {
-  console.log(`✅ Server läuft auf Port ${port}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server läuft auf http://localhost:${PORT}`));
