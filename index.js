@@ -11,6 +11,10 @@ app.get("/api/hello", (req, res) => {
   res.json({ message: "Hallo Render!" });
 });
 
+app.get("/", (req, res) => {
+  res.send("Willkommen bei ImproveYourself 🚀");
+});
+
 app.listen(port, () => {
   console.log(`✅ Server läuft auf Port ${port}`);
 });
