@@ -29,5 +29,10 @@ app.post("/ask", async (req, res) => {
     }
 });
 
+app.get("/test", (req, res) => {
+    res.send("✅ Render Test erfolgreich");
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server läuft auf http://localhost:${PORT}`));
