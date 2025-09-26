@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>ImproveYourself Chat</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <h1>ImproveYourself Chat</h1>
+
+  <div id="loginBox">
+    <label for="usernameInput">Benutzername (zum Einloggen):</label>
+    <input id="usernameInput" placeholder="Dein Benutzername" />
+    <button id="loginBtn">Einloggen</button>
+    <span id="loggedInAs" style="margin-left:1rem;"></span>
+    <button id="deleteUserBtn" style="margin-left:1rem; color:red;">Benutzer & Kontext löschen</button>
+
+  </div>
+
+  <div style="margin-top:1rem;">
+    <label for="agentSelect">Agent auswählen:</label>
+    <select id="agentSelect">
+      <option value="agent1">Agent 1</option>
+      <option value="agent2">Agent 2</option>
+      <option value="agent3">Agent 3</option>
+      <option value="agent4">Agent 4</option>
+      <option value="agent5">Agent 5</option>
+      <option value="agent6">Agent 6</option>
+    </select>
+  </div>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <div id="messageRow">
+    <input type="text" id="messageInput" placeholder="Schreibe deine Nachricht..." size="50"/>
+    <button id="sendBtn">Senden</button>
+  </div>
+
+  <hr/>
+
+  <h3>Kontextfelder für ausgewählten Agent</h3>
+  <div>
+    <label>Kontext 1:</label><br/>
+    <textarea id="context1" rows="3" cols="70" placeholder="Kontext 1 speichern..."></textarea><br/>
+    <button id="saveContext1">Speichern (Slot 1)</button>
+  </div>
+  <div style="margin-top:0.5rem;">
+    <label>Kontext 2:</label><br/>
+    <textarea id="context2" rows="3" cols="70" placeholder="Kontext 2 speichern..."></textarea><br/>
+    <button id="saveContext2">Speichern (Slot 2)</button>
+  </div>
+
+<script>
+// --- Login / username handling (localStorage)
+const usernameInput = document.getElementById("usernameInput");
+const loginBtn = document.getElementById("loginBtn");
+const loggedInAs = document.getElementById("loggedInAs");
+
+function setLoggedIn(username) {
+  localStorage.setItem("im_user", username);
+  loggedInAs.textContent = `Eingeloggt als: ${username}`;
+}
+function getLoggedIn() {
+  return localStorage.getItem("im_user");
+}
+
+
+const deleteUserBtn = document.getElementById("deleteUserBtn");
+
+deleteUserBtn.addEventListener("click", async () => {
+  const username = getLoggedIn();
+  if (!username) return alert("Kein Benutzer eingeloggt!");
+
+  if (!confirm(`Willst du den Benutzer "${username}" und alle gespeicherten Kontexte wirklich löschen?`)) {
+    return;
+  }
+
+  const res = await fetch("/deleteUser", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    alert(data.message);
+
+    // localStorage auch leeren
+    localStorage.removeItem("im_user");
+    loggedInAs.textContent = "";
+    context1.value = "";
+    context2.value = "";
+    chat.innerHTML = "";
+  } else {
+    alert("Fehler: " + (data.error || "Unbekannt"));
+  }
+});
+
+
+// initial
+const existing = getLoggedIn();
+if (existing) setLoggedIn(existing);
+
+loginBtn.addEventListener("click", () => {
+  const u = usernameInput.value.trim();
+  if (!u) return alert("Bitte Benutzernamen eingeben");
+  setLoggedIn(u);
+  usernameInput.value = "";
+  loadContextsForSelectedAgent();
+});
+
+// --- DOM refs
+const agentSelect = document.getElementById("agentSelect");
+const chat = document.getElementById("chat");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const context1 = document.getElementById("context1");
+const context2 = document.getElementById("context2");
+const saveContext1 = document.getElementById("saveContext1");
+const saveContext2 = document.getElementById("saveContext2");
+
+// send chat
+async function sendMessage() {
+  const username = getLoggedIn();
+  if (!username) return alert("Bitte zuerst Benutzernamen eingeben (Login)");
+
+  const agent = agentSelect.value;
+  const message = messageInput.value.trim();
+  if (!message) return;
+
+  appendToChat("Du", message, "user");
+  messageInput.value = "";
+
+  const res = await fetch(`/chat/${agent}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, username })
+  });
+  const data = await res.json();
+  if (data.error) {
+    appendToChat("Fehler", data.error, "agent");
+  } else {
+    appendToChat(agent, data.reply, "agent");
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+sendBtn.addEventListener("click", sendMessage);
+messageInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function appendToChat(who, text, cls) {
+  const div = document.createElement("div");
+  div.className = `message ${cls}`;
+  div.innerHTML = `<b>${who}:</b> ${text}`;
+  chat.appendChild(div);
+}
+
+// save contexts
+async function saveContext(slot) {
+  const username = getLoggedIn();
+  if (!username) return alert("Bitte zuerst Benutzernamen eingeben (Login)");
+
+  const agent = agentSelect.value;
+  const message = slot === 1 ? context1.value : context2.value;
+
+  const res = await fetch("/saveContext", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, agent, slot, message })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    alert(`Kontext ${slot} für ${agent} gespeichert.`);
+    loadContextsForSelectedAgent();
+  } else {
+    alert("Fehler beim Speichern");
+  }
+}
+
+saveContext1.addEventListener("click", () => saveContext(1));
+saveContext2.addEventListener("click", () => saveContext(2));
+
+// load contexts when agent changes or after login
+agentSelect.addEventListener("change", loadContextsForSelectedAgent);
+
+async function loadContextsForSelectedAgent() {
+  const username = getLoggedIn();
+  if (!username) {
+    context1.value = "";
+    context2.value = "";
+    return;
+  }
+  const agent = agentSelect.value;
+  const res = await fetch(`/getContexts?username=${encodeURIComponent(username)}&agent=${encodeURIComponent(agent)}`);
+  const data = await res.json();
+  if (data.contexts) {
+    context1.value = data.contexts["1"] || "";
+    context2.value = data.contexts["2"] || "";
+  } else {
+    context1.value = "";
+    context2.value = "";
+  }
+}
+
+// initial load
+loadContextsForSelectedAgent();
+</script>
+</body>
+</html>
